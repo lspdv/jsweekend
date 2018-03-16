@@ -3,10 +3,12 @@
 import * as React from "react";
 import { Col, Row, Card } from "antd";
 import { createFragmentContainer, graphql } from "react-relay";
+import idx from "idx";
 
 import DateTime from "../../common/DateTime";
 import DateTimeRange from "../../common/DateTimeRange";
 import resolveScopedStyles from "../../../utils/resolveScopedStyles";
+import type { Leg_leg as LegType } from "./__generated__/Leg_leg.graphql.js";
 
 const cardStyles = resolveScopedStyles(
   <scope>
@@ -19,37 +21,43 @@ const cardStyles = resolveScopedStyles(
 );
 
 type Props = {
-  leg: Object
+  leg: LegType
 };
 
-const Leg = ({ leg }: Props) => (
-  <Card
-    title={
-      <DateTimeRange
-        departureTime={leg.departure.localTime}
-        arrivalTime={leg.arrival.localTime}
-        areDates
-      />
-    }
-    className={`card ${cardStyles.className}`}
-  >
-    <Row type="flex" justify="start" gutter={16}>
-      <Col>
-        <Row>
-          <DateTime value={leg.departure.localTime} />
-        </Row>
-        <Row>
-          <DateTime value={leg.arrival.localTime} />
-        </Row>
-      </Col>
-      <Col>
-        <Row>{leg.departure.airport.name}</Row>
-        <Row>{leg.arrival.airport.name}</Row>
-      </Col>
-    </Row>
-    {cardStyles.styles}
-  </Card>
-);
+const Leg = ({ leg }: Props) => {
+  const departureTime = idx(leg, _ => _.departure.localTime);
+  const arrivalTime = idx(leg, _ => _.arrival.localTime);
+  const departureName = idx(leg, _ => _.departure.airport.name);
+  const arrivalName = idx(leg, _ => _.arrival.airport.name);
+  return (
+    <Card
+      title={
+        <DateTimeRange
+          departureTime={departureTime}
+          arrivalTime={arrivalTime}
+          areDates
+        />
+      }
+      className={`card ${cardStyles.className}`}
+    >
+      <Row type="flex" justify="start" gutter={16}>
+        <Col>
+          <Row>
+            <DateTime value={departureTime} />
+          </Row>
+          <Row>
+            <DateTime value={arrivalTime} />
+          </Row>
+        </Col>
+        <Col>
+          <Row>{departureName}</Row>
+          <Row>{arrivalName}</Row>
+        </Col>
+      </Row>
+      {cardStyles.styles}
+    </Card>
+  );
+};
 
 export default createFragmentContainer(
   Leg,
